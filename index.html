@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <meta name="theme-color" content="#0d0d12">
 
@@ -18,401 +16,336 @@
 
 <body>
 
-  <!-- HEADER -->
-  <header class="topbar">
+<header class="topbar">
 
-    <div class="brand">
+  <div class="brand">
+    <div class="brand-icon">✨</div>
 
-      <div class="brand-icon">
-        ✨
+    <div>
+      <strong>هر روز یه چیز</strong>
+      <span>هر روز یه اتفاق تازه</span>
+    </div>
+  </div>
+
+  <button id="profileBtn"
+          class="profile-btn"
+          type="button">
+    👤
+  </button>
+
+</header>
+
+
+<main>
+
+  <!-- =========================
+       HOME
+  ========================== -->
+
+  <section id="homePage" class="page active">
+
+    <div class="hero">
+
+      <div class="hero-badge">
+        🎁 اتفاق امروز
       </div>
 
-      <div>
-        <strong>هر روز یه چیز</strong>
-        <span>هر روز یه اتفاق تازه</span>
+      <h1 id="contentTitle">
+        در حال دریافت...
+      </h1>
+
+      <p id="contentBody">
+        کمی صبر کن...
+      </p>
+
+
+      <!-- گزینه‌های سؤال -->
+      <div id="options" class="options"></div>
+
+
+      <!-- دکمه شروع -->
+      <button id="startBtn"
+              class="primary"
+              type="button">
+        شروع کن 🚀
+      </button>
+
+
+      <!-- نتیجه -->
+      <div id="result"
+           class="result hidden">
       </div>
 
     </div>
 
-    <button
-      id="profileBtn"
-      class="profile-btn"
-      type="button"
-    >
-      👤
-    </button>
 
-  </header>
+    <!-- آمار -->
+    <div class="stats-grid">
 
-
-  <!-- MAIN -->
-  <main>
-
-    <!-- HOME -->
-    <section
-      id="homePage"
-      class="page active"
-    >
-
-      <div class="hero">
-
-        <div class="hero-badge">
-          🎁 اتفاق امروز
-        </div>
-
-        <h1 id="contentTitle">
-          در حال دریافت...
-        </h1>
-
-        <p id="contentBody">
-          کمی صبر کن...
-        </p>
-
-        <div id="contentArea"></div>
-
-        <button
-          id="startBtn"
-          class="primary"
-          type="button"
-        >
-          شروع کن 🚀
-        </button>
-
-        <div
-          id="resultBox"
-          class="result hidden"
-        ></div>
-
+      <div class="stat-card">
+        <span>امتیاز امروز</span>
+        <strong id="score">0</strong>
       </div>
 
-
-      <!-- STATS -->
-      <div class="stats-grid">
-
-        <div class="stat-card">
-
-          <span>
-            امتیاز امروز
-          </span>
-
-          <strong id="todayScore">
-            0
-          </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <span>
-            استریک
-          </span>
-
-          <strong id="streak">
-            0 🔥
-          </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <span>
-            رتبه
-          </span>
-
-          <strong id="rank">
-            -
-          </strong>
-
-        </div>
-
+      <div class="stat-card">
+        <span>استریک</span>
+        <strong id="streak">0 🔥</strong>
       </div>
 
-    </section>
-
-
-    <!-- COMPETITION -->
-    <section
-      id="competitionPage"
-      class="page"
-    >
-
-      <div class="section-title">
-
-        <h2>
-          🏆 رقابت
-        </h2>
-
-        <p>
-          بهترین‌های این هفته
-        </p>
-
+      <div class="stat-card">
+        <span>رتبه</span>
+        <strong id="rank">-</strong>
       </div>
 
-      <div
-        id="leaderboard"
-        class="leaderboard"
-      >
+    </div>
 
-        <div class="empty">
-          در حال دریافت رتبه‌بندی...
-        </div>
-
-      </div>
-
-    </section>
+  </section>
 
 
-    <!-- PROFILE -->
-    <section
-      id="profilePage"
-      class="page"
-    >
 
-      <div class="profile-card">
+  <!-- =========================
+       COMPETITION
+  ========================== -->
 
-        <div
-          class="avatar"
-          id="profileAvatar"
-        >
-          👤
-        </div>
+  <section id="competitionPage"
+           class="page">
 
-        <h2 id="profileName">
-          مهمان
-        </h2>
+    <div class="section-title">
 
-        <p id="profileEmail">
-          هنوز وارد حساب نشده‌ای
-        </p>
-
-        <button
-          id="authBtn"
-          class="primary"
-          type="button"
-        >
-          ورود / ثبت‌نام
-        </button>
-
-      </div>
-
-
-      <div class="stats-list">
-
-        <div>
-          <span>
-            امتیاز کل
-          </span>
-
-          <strong id="totalScore">
-            0
-          </strong>
-        </div>
-
-
-        <div>
-          <span>
-            استریک فعلی
-          </span>
-
-          <strong id="profileStreak">
-            0
-          </strong>
-        </div>
-
-
-        <div>
-          <span>
-            بیشترین استریک
-          </span>
-
-          <strong id="longestStreak">
-            0
-          </strong>
-        </div>
-
-
-        <div>
-          <span>
-            تعداد فعالیت
-          </span>
-
-          <strong id="activityCount">
-            0
-          </strong>
-        </div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-
-    <button
-      class="nav-item active"
-      data-page="homePage"
-      type="button"
-    >
-
-      <span>
-        🏠
-      </span>
-
-      <small>
-        خانه
-      </small>
-
-    </button>
-
-
-    <button
-      class="nav-item"
-      data-page="competitionPage"
-      type="button"
-    >
-
-      <span>
-        🏆
-      </span>
-
-      <small>
-        رقابت
-      </small>
-
-    </button>
-
-
-    <button
-      class="nav-item"
-      data-page="profilePage"
-      type="button"
-    >
-
-      <span>
-        👤
-      </span>
-
-      <small>
-        پروفایل
-      </small>
-
-    </button>
-
-  </nav>
-
-
-  <!-- AUTH MODAL -->
-  <div
-    id="authModal"
-    class="modal hidden"
-  >
-
-    <div class="modal-box">
-
-      <button
-        id="closeAuth"
-        class="modal-close"
-        type="button"
-      >
-        ×
-      </button>
-
-
-      <h2>
-        ورود / ثبت‌نام
-      </h2>
+      <h2>🏆 رقابت</h2>
 
       <p>
-        با ایمیل یا Gmail و رمز عبور وارد شو
-        یا یک حساب جدید بساز.
+        بهترین‌های این هفته
+      </p>
+
+    </div>
+
+
+    <div id="leaderboard"
+         class="leaderboard">
+
+      <div class="empty">
+        در حال دریافت رتبه‌بندی...
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================
+       PROFILE
+  ========================== -->
+
+  <section id="profilePage"
+           class="page">
+
+    <div class="profile-card">
+
+      <div class="avatar"
+           id="profileAvatar">
+        👤
+      </div>
+
+
+      <h2 id="profileName">
+        مهمان
+      </h2>
+
+
+      <p id="profileEmail">
+        هنوز وارد حساب نشده‌ای
       </p>
 
 
-      <div class="auth-fields">
+      <button id="authBtn"
+              class="primary"
+              type="button">
+        ورود / ثبت‌نام
+      </button>
 
-        <!-- NAME -->
-        <input
-          id="authName"
-          type="text"
-          placeholder="نام شما"
-          autocomplete="name"
-        >
+    </div>
 
 
-        <!-- EMAIL -->
-        <input
-          id="authEmail"
-          type="email"
-          placeholder="ایمیل / Gmail"
-          autocomplete="email"
-        >
+    <div class="stats-list">
 
-
-        <!-- PASSWORD -->
-        <input
-          id="authPassword"
-          type="password"
-          placeholder="رمز عبور"
-          autocomplete="current-password"
-        >
-
+      <div>
+        <span>امتیاز کل</span>
+        <strong id="totalScore">0</strong>
       </div>
 
 
-      <div class="auth-actions">
-
-        <button
-          id="emailLogin"
-          class="primary"
-          type="button"
-        >
-          ورود
-        </button>
-
-
-        <button
-          id="emailSignup"
-          class="secondary"
-          type="button"
-        >
-          ساخت حساب
-        </button>
-
+      <div>
+        <span>استریک فعلی</span>
+        <strong id="profileStreak">0</strong>
       </div>
 
 
-      <div
-        id="authMessage"
-        class="auth-message"
-      ></div>
+      <div>
+        <span>بیشترین استریک</span>
+        <strong id="longestStreak">0</strong>
+      </div>
 
+
+      <div>
+        <span>تعداد فعالیت</span>
+        <strong id="activityCount">0</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+
+<!-- =========================
+     BOTTOM NAV
+========================== -->
+
+<nav class="bottom-nav">
+
+  <button class="nav-item active"
+          data-section="homePage"
+          type="button">
+
+    <span>🏠</span>
+    <small>خانه</small>
+
+  </button>
+
+
+  <button class="nav-item"
+          data-section="competitionPage"
+          type="button">
+
+    <span>🏆</span>
+    <small>رقابت</small>
+
+  </button>
+
+
+  <button class="nav-item"
+          data-section="profilePage"
+          type="button">
+
+    <span>👤</span>
+    <small>پروفایل</small>
+
+  </button>
+
+</nav>
+
+
+
+<!-- =========================
+     AUTH MODAL
+========================== -->
+
+<div id="authModal"
+     class="modal hidden">
+
+  <div class="modal-box">
+
+    <button id="closeAuth"
+            class="modal-close"
+            type="button">
+      ×
+    </button>
+
+
+    <h2>
+      ورود / ثبت‌نام
+    </h2>
+
+
+    <p>
+      با ایمیل یا Gmail و رمز عبور وارد شو
+      یا یک حساب جدید بساز.
+    </p>
+
+
+    <div class="auth-fields">
+
+      <input
+        id="authName"
+        type="text"
+        placeholder="نام شما"
+        autocomplete="name">
+
+
+      <input
+        id="authEmail"
+        type="email"
+        placeholder="ایمیل / Gmail"
+        autocomplete="email">
+
+
+      <input
+        id="authPassword"
+        type="password"
+        placeholder="رمز عبور"
+        autocomplete="current-password">
+
+    </div>
+
+
+    <div class="auth-actions">
+
+      <button id="emailLogin"
+              class="primary"
+              type="button">
+        ورود
+      </button>
+
+
+      <button id="emailSignup"
+              class="secondary"
+              type="button">
+        ساخت حساب
+      </button>
+
+    </div>
+
+
+    <div id="authMessage"
+         class="auth-message">
     </div>
 
   </div>
 
-
-  <!-- SUPABASE -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</div>
 
 
-  <script>
-    window.APP_CONFIG = {
-      SUPABASE_URL:
-        "https://urnnktoadrqrvhvvvtfd.supabase.co",
 
-      SUPABASE_KEY:
-        "sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"
-    };
-  </script>
+<!-- =========================
+     SUPABASE
+========================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-  <!-- APP -->
-  <script src="./app.js"></script>
+<script>
+
+window.APP_CONFIG = {
+
+  SUPABASE_URL:
+    "https://urnnktoadrqrvhvvvtfd.supabase.co",
+
+  SUPABASE_KEY:
+    "sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"
+
+};
+
+</script>
+
+
+<!-- APP -->
+
+<script src="./app.js"></script>
+
 
 </body>
 </html>
