@@ -14,6 +14,10 @@ const db = createClient(
   }
 );
 
+const $ = (id) => document.getElementById(id);
+
+const PENDING_KEY = 'dailyThingPendingAnswer';
+
 const state = {
   user: null,
   content: null,
@@ -22,258 +26,187 @@ const state = {
   busy: false
 };
 
-const $ = (id) => document.getElementById(id);
+/* =========================
+   Helpers
+========================= */
 
-const esc = (value = '') =>
-  String(value).replace(/[&<>'"]/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-  }[char]));
-
-const setText = (id, value) => {
+function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value ?? '';
-};
+}
 
-const showAuthMessage = (text, success = false) => {
-  const el = $('authMsg');
+function show(el, visible = true) {
   if (!el) return;
-  el.textContent = text;
-  el.className = `msg ${success ? 'ok' : ''}`;
-};
+  el.classList.toggle('hidden', !visible);
+}
 
-const openAuth = () => {
-  $('authModal')?.classList.remove('hidden');
-};
+function normalizeError(error) {
+  if (!error) return 'خطایی رخ داد.';
+  return error.message || String(error);
+}
 
-const closeAuth = () => {
-  $('authModal')?.classList.add('hidden');
-};
+/* =========================
+   Pending Answer
+========================= */
 
-const showResult = (text, success = false) => {
-  const el = $('result');
-  if (!el) return;
-  el.textContent = text;
-  el.className = `result ${success ? 'success' : 'fail'}`;
-};
+function savePendingAnswer() {
+  if (!state.content || !state.selected) return;
 
-function getDisplayName(user) {
-  const meta = user?.user_metadata || {};
-
-  return (
-    meta.full_name ||
-    meta.name ||
-    meta.user_name ||
-    user?.email?.split('@')[0] ||
-    'کاربر'
+  sessionStorage.setItem(
+    PENDING_KEY,
+    JSON.stringify({
+      contentId: state.content.id,
+      optionId: state.selected
+    })
   );
 }
 
-function getAvatarUrl(user) {
-  const meta = user?.user_metadata || {};
-  return meta.avatar_url || meta.picture || '';
+function getPendingAnswer() {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
+
+function clearPendingAnswer() {
+  sessionStorage.removeItem(PENDING_KEY);
+}
+
+/* =========================
+   Auth
+========================= */
+
+function openAuth() {
+  const modal = $('authModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAuth() {
+  const modal = $('authModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function setAuthMessage(message, ok = false) {
+  const el = $('authMessage');
+
+  if (!el) return;
+
+  el.textContent = message || '';
+  el.className = `auth-message ${ok ? 'ok' : ''}`;
+}
+
+async function login() {
+  const email = $('authEmail')?.value.trim();
+  const password = $('authPassword')?.value;
+
+  if (!email || !password) {
+    setAuthMessage('ایمیل و رمز عبور را وارد کن.');
+    return;
+  }
+
+  setAuthMessage('در حال ورود...');
+
+  const { error } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    setAuthMessage(normalizeError(error));
+    return;
+  }
+
+  setAuthMessage('ورود موفق بود ✅', true);
+
+  setTimeout(() => {
+    closeAuth();
+  }, 400);
+}
+
+async function signup() {
+  const name = $('authName')?.value.trim();
+  const email = $('authEmail')?.value.trim();
+  const password = $('authPassword')?.value;
+
+  if (!email || !password) {
+    setAuthMessage('ایمیل و رمز عبور را وارد کن.');
+    return;
+  }
+
+  if (password.length < 6) {
+    setAuthMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+    return;
+  }
+
+  setAuthMessage('در حال ساخت حساب...');
+
+  const { data, error } = await db.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        display_name: name || 'کاربر'
+      }
+    }
+  });
+
+  if (error) {
+    setAuthMessage(normalizeError(error));
+    return;
+  }
+
+  if (data.session) {
+    setAuthMessage('حساب ساخته شد و وارد شدی ✅', true);
+
+    setTimeout(() => {
+      closeAuth();
+    }, 400);
+  } else {
+    setAuthMessage(
+      'حساب ساخته شد. اگر تأیید ایمیل فعال باشد، ایمیلت را تأیید کن و بعد وارد شو. ✅',
+      true
+    );
+  }
+}
+
+/* =========================
+   Load User
+========================= */
 
 async function refreshUser() {
-  const { data, error } = await db.auth.getUser();
+  const {
+    data,
+    error
+  } = await db.auth.getUser();
 
-  if (error) {
-    console.warn('getUser:', error.message);
+  if (error || !data?.user) {
+    state.user = null;
+    return null;
   }
 
-  state.user = data?.user || null;
-
-  setText(
-    'authBtn',
-    state.user ? 'حساب من' : 'ورود با Google'
-  );
-
-  setText(
-    'profileName',
-    getDisplayName(state.user)
-  );
-
-  setText(
-    'profileEmail',
-    state.user?.email || ''
-  );
-
-  const avatar = $('avatar');
-
-  if (avatar) {
-    const url = getAvatarUrl(state.user);
-
-    if (url) {
-      avatar.innerHTML = `
-        <img
-          src="${esc(url)}"
-          alt=""
-          loading="lazy"
-          referrerpolicy="no-referrer"
-        >
-      `;
-    } else {
-      avatar.textContent = '🙂';
-    }
-  }
+  state.user = data.user;
+  return data.user;
 }
 
-async function loadStats() {
-  if (!state.user) {
-    setText('score', 0);
-    setText('streak', 0);
-    setText('rank', '—');
-    setText('pScore', 0);
-    setText('pStreak', 0);
-    setText('pLongest', 0);
-    setText('pAnswers', 0);
-    return;
-  }
-
-  const [statsResult, rankResult] = await Promise.all([
-    db.rpc('get_my_stats'),
-    db.rpc('get_my_weekly_rank')
-  ]);
-
-  if (statsResult.error) {
-    console.warn('stats:', statsResult.error.message);
-  }
-
-  if (rankResult.error) {
-    console.warn('rank:', rankResult.error.message);
-  }
-
-  const stats = statsResult.data || {};
-
-  setText('score', stats.score || 0);
-  setText('streak', stats.streak || 0);
-
-  setText('pScore', stats.score || 0);
-  setText('pStreak', stats.streak || 0);
-  setText('pLongest', stats.longest_streak || 0);
-  setText('pAnswers', stats.answers || 0);
-
-  let rank = '—';
-
-  if (Array.isArray(rankResult.data)) {
-    rank = rankResult.data[0]?.rank ?? '—';
-  } else if (rankResult.data != null) {
-    rank = rankResult.data;
-  }
-
-  setText('rank', rank);
-}
-
-function getButtonLabel(type) {
-  switch (type) {
-    case 'quiz':
-      return 'ثبت جواب';
-    case 'poll':
-      return 'ثبت رأی';
-    case 'challenge':
-      return 'انجام دادم 🎯';
-    default:
-      return 'ثبت';
-  }
-}
-
-function renderOptions(options = []) {
-  const container = $('options');
-
-  if (!container) return;
-
-  if (!options.length) {
-    container.innerHTML = '';
-    return;
-  }
-
-  container.innerHTML = options
-    .map(
-      (option) => `
-        <button
-          class="option"
-          type="button"
-          data-id="${esc(option.id)}"
-        >
-          ${esc(option.text)}
-        </button>
-      `
-    )
-    .join('');
-
-  container.querySelectorAll('.option').forEach((button) => {
-    button.addEventListener('click', () => {
-      if (state.answered || state.busy) return;
-
-      container
-        .querySelectorAll('.option')
-        .forEach((item) => {
-          item.classList.remove('selected');
-        });
-
-      button.classList.add('selected');
-      state.selected = button.dataset.id;
-    });
-  });
-}
-
-function setOptionsDisabled(disabled) {
-  document
-    .querySelectorAll('.option')
-    .forEach((button) => {
-      button.disabled = disabled;
-    });
-}
+/* =========================
+   Daily Content
+========================= */
 
 async function loadContent() {
-  state.content = null;
-  state.selected = null;
-  state.answered = false;
-  state.busy = false;
-
-  const startBtn = $('startBtn');
-
-  if (startBtn) {
-    startBtn.disabled = true;
-    startBtn.textContent = 'در حال آماده‌سازی...';
-  }
-
-  setText('contentTitle', 'در حال آماده‌سازی...');
-  setText('contentBody', 'یک لحظه صبر کن.');
-  setText('result', '');
-
-  if ($('options')) {
-    $('options').innerHTML = '';
-  }
-
-  const { data, error } = await db.rpc(
-    'get_active_daily_content'
-  );
+  const {
+    data,
+    error
+  } = await db.rpc('get_active_daily_content');
 
   if (error) {
-    console.error('content:', error);
+    console.error(error);
 
     setText(
       'contentTitle',
-      'خطا در دریافت محتوای امروز'
+      'فعلاً محتوایی برای امروز پیدا نشد.'
     );
-
-    setText(
-      'contentBody',
-      'اتصال را بررسی کن و دوباره تلاش کن.'
-    );
-
-    if (startBtn) {
-      startBtn.textContent = 'تلاش دوباره';
-      startBtn.disabled = false;
-      startBtn.onclick = async () => {
-        startBtn.onclick = null;
-        await loadContent();
-      };
-    }
 
     return;
   }
@@ -281,412 +214,584 @@ async function loadContent() {
   if (!data) {
     setText(
       'contentTitle',
-      'هنوز اتفاق امروز منتشر نشده'
+      'فعلاً محتوایی برای امروز منتشر نشده.'
     );
-
-    setText(
-      'contentBody',
-      'به‌زودی اولین محتوای روز اینجا میاد.'
-    );
-
-    if (startBtn) {
-      startBtn.textContent = 'منتظر بمون 😉';
-      startBtn.disabled = true;
-    }
 
     return;
   }
 
   state.content = data;
+  state.selected = null;
+  state.answered = false;
 
-  setText(
-    'contentTitle',
-    data.title || 'اتفاق امروز'
-  );
+  renderContent(data);
+}
 
-  setText(
-    'contentBody',
-    data.body || ''
-  );
+function renderContent(content) {
+  setText('contentTitle', content.title || '');
+  setText('contentBody', content.body || '');
 
-  const options = Array.isArray(data.options)
-    ? [...data.options].sort(
-        (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-      )
-    : [];
+  const optionsEl = $('options');
 
-  renderOptions(options);
+  if (!optionsEl) return;
 
-  if (startBtn) {
-    startBtn.onclick = submitAnswer;
-    startBtn.textContent = getButtonLabel(data.type);
+  optionsEl.innerHTML = '';
 
-    startBtn.disabled =
-      data.type !== 'challenge' && options.length === 0;
+  if (
+    (content.type === 'quiz' || content.type === 'poll') &&
+    Array.isArray(content.options)
+  ) {
+    content.options.forEach((option) => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.className = 'option';
+      button.textContent = option.text;
+
+      button.addEventListener('click', () => {
+        selectOption(option.id, button);
+      });
+
+      optionsEl.appendChild(button);
+    });
+  }
+
+  const startButton = $('startBtn');
+
+  if (startButton) {
+    startButton.textContent = 'شروع کن';
+    startButton.disabled = false;
+  }
+
+  const result = $('result');
+
+  if (result) {
+    result.textContent = '';
+    result.className = 'result hidden';
   }
 }
 
-async function submitAnswer() {
-  if (!state.user) {
-    openAuth();
-    return;
-  }
+/* =========================
+   Select Option
+========================= */
 
-  if (!state.content || state.busy || state.answered) {
-    return;
-  }
+function selectOption(optionId, button) {
+  if (state.busy || state.answered) return;
 
-  const type = state.content.type;
+  state.selected = optionId;
 
-  if (
-    (type === 'quiz' || type === 'poll') &&
-    !state.selected
-  ) {
-    showResult(
-      type === 'quiz'
-        ? 'اول یک گزینه رو انتخاب کن 🙂'
-        : 'اول گزینه موردنظرت رو انتخاب کن 🙂',
-      false
-    );
+  document
+    .querySelectorAll('.option')
+    .forEach((item) => item.classList.remove('selected'));
+
+  button.classList.add('selected');
+}
+
+/* =========================
+   Preview Answer
+========================= */
+
+async function previewAnswer() {
+  if (!state.content || !state.selected || state.busy) {
     return;
   }
 
   state.busy = true;
 
-  const startBtn = $('startBtn');
+  const startButton = $('startBtn');
 
-  if (startBtn) {
-    startBtn.disabled = true;
-    startBtn.textContent = 'در حال ثبت...';
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = 'در حال بررسی...';
   }
 
-  const { data, error } = await db.rpc(
-    'submit_content_response',
-    {
-      p_content_id: state.content.id,
-      p_option_id: state.selected || null
-    }
-  );
+  const {
+    data,
+    error
+  } = await db.rpc('preview_content_response', {
+    p_content_id: state.content.id,
+    p_option_id: state.selected
+  });
 
   state.busy = false;
 
   if (error) {
-    console.error('submit:', error);
+    console.error(error);
 
-    const message = error.message || '';
-
-    if (message.includes('already_answered')) {
-      state.answered = true;
-      setOptionsDisabled(true);
-
-      showResult(
-        'امروز قبلاً این کار رو انجام دادی 😉',
-        false
-      );
-
-      if (startBtn) {
-        startBtn.disabled = true;
-        startBtn.textContent = 'انجام شد ✓';
-      }
-
-      return;
+    if (startButton) {
+      startButton.disabled = false;
+      startButton.textContent = 'دوباره تلاش کن';
     }
 
-    if (message.includes('content_not_active')) {
-      await loadContent();
-      return;
-    }
-
-    if (message.includes('not_authenticated')) {
-      openAuth();
-    } else if (message.includes('option_required')) {
-      showResult(
-        'اول یک گزینه رو انتخاب کن 🙂',
-        false
-      );
-    } else {
-      showResult(
-        'ثبت پاسخ انجام نشد؛ دوباره امتحان کن.',
-        false
-      );
-    }
-
-    if (startBtn) {
-      startBtn.disabled = false;
-      startBtn.textContent = getButtonLabel(type);
-    }
-
+    showResult('بررسی پاسخ انجام نشد. دوباره امتحان کن.', false);
     return;
   }
 
   state.answered = true;
-  setOptionsDisabled(true);
 
+  const type = data?.type;
+  const correct = data?.correct;
   const points = Number(data?.points || 0);
-  const correct = Boolean(data?.correct);
 
   if (type === 'quiz') {
+    markQuizResult(correct);
+
     if (correct) {
       showResult(
-        `آفرین! جواب درست بود 🎉 +${points} امتیاز`,
+        `درست گفتی! 🎉 +${points} امتیاز`,
         true
       );
     } else {
       showResult(
-        'این یکی درست نبود 😄 فردا دوباره بیا',
+        'این جواب درست نبود 😅',
         false
       );
     }
   } else if (type === 'poll') {
     showResult(
-      `رأی تو ثبت شد 🗳️ +${points} امتیاز`,
+      'رأی تو ثبت می‌شود؛ برای گرفتن امتیاز وارد حسابت شو.',
       true
     );
   } else if (type === 'challenge') {
     showResult(
-      `چالش ثبت شد 🎯 +${points} امتیاز`,
+      `چالش انجام شد! برای ثبت +${points} امتیاز وارد حسابت شو.`,
       true
+    );
+  }
+
+  savePendingAnswer();
+
+  if (startButton) {
+    startButton.disabled = false;
+    startButton.textContent = 'ثبت امتیاز با حساب';
+  }
+}
+
+function markQuizResult(correct) {
+  if (!state.content?.options) return;
+
+  document.querySelectorAll('.option').forEach((button, index) => {
+    const option = state.content.options[index];
+
+    if (!option) return;
+
+    if (option.id === state.selected) {
+      button.classList.add(correct ? 'correct' : 'wrong');
+    }
+
+    if (!correct && option.is_correct === true) {
+      button.classList.add('correct');
+    }
+  });
+}
+
+function showResult(message, success = true) {
+  const result = $('result');
+
+  if (!result) return;
+
+  result.textContent = message;
+  result.className = `result ${success ? 'ok' : 'error'}`;
+}
+
+/* =========================
+   Real Submit
+========================= */
+
+async function submitAnswer() {
+  if (!state.content || state.busy) {
+    return;
+  }
+
+  /*
+   * Quiz / Poll require a selected option.
+   */
+  if (
+    (state.content.type === 'quiz' ||
+      state.content.type === 'poll') &&
+    !state.selected
+  ) {
+    showResult('اول یک گزینه را انتخاب کن.', false);
+    return;
+  }
+
+  /*
+   * Guest:
+   * first preview the answer,
+   * then ask for account only when saving score.
+   */
+  if (!state.user) {
+    if (!state.answered) {
+      await previewAnswer();
+      return;
+    }
+
+    savePendingAnswer();
+    openAuth();
+
+    return;
+  }
+
+  /*
+   * Already answered locally.
+   * User may simply need to save the pending answer.
+   */
+  if (state.answered) {
+    await submitPendingAnswerIfNeeded();
+    return;
+  }
+
+  state.busy = true;
+
+  const startButton = $('startBtn');
+
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = 'در حال ثبت...';
+  }
+
+  const {
+    data,
+    error
+  } = await db.rpc('submit_content_response', {
+    p_content_id: state.content.id,
+    p_option_id: state.selected || null
+  });
+
+  state.busy = false;
+
+  if (error) {
+    console.error(error);
+
+    if (startButton) {
+      startButton.disabled = false;
+      startButton.textContent = 'دوباره تلاش کن';
+    }
+
+    showResult(normalizeError(error), false);
+    return;
+  }
+
+  state.answered = true;
+
+  clearPendingAnswer();
+
+  const points = Number(data?.points_earned ?? data?.points ?? 0);
+  const correct = data?.correct;
+
+  if (state.content.type === 'quiz') {
+    markQuizResult(correct);
+
+    showResult(
+      correct
+        ? `درست گفتی! 🎉 +${points} امتیاز`
+        : `ثبت شد. ${points > 0 ? `+${points} امتیاز` : 'امتیازی نگرفتی.'}`,
+      correct
     );
   } else {
     showResult(
-      `ثبت شد! +${points} امتیاز`,
+      `ثبت شد! 🎉 +${points} امتیاز`,
       true
     );
   }
 
-  const selectedButton = document.querySelector(
-    '.option.selected'
-  );
-
-  if (type === 'quiz' && selectedButton) {
-    selectedButton.classList.add(
-      correct ? 'correct' : 'wrong'
-    );
-  }
-
-  if (startBtn) {
-    startBtn.disabled = true;
-    startBtn.textContent = 'انجام شد ✓';
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = 'ثبت شد ✓';
   }
 
   await loadStats();
 }
 
-async function signInWithGoogle() {
-  showAuthMessage('در حال انتقال به Google...');
+/* =========================
+   Pending Submit After Login
+========================= */
 
-  const redirectTo =
-    `${window.location.origin}${window.location.pathname}`;
-
-  const { error } = await db.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo
-    }
-  });
-
-  if (error) {
-    console.error('Google login:', error);
-    showAuthMessage(
-      'ورود با Google انجام نشد. تنظیمات Google و Supabase را بررسی کن.'
-    );
-  }
-}
-
-async function logout() {
-  const { error } = await db.auth.signOut();
-
-  if (error) {
-    console.error('logout:', error);
+async function submitPendingAnswerIfNeeded() {
+  if (!state.user || !state.content) {
     return;
   }
 
-  state.user = null;
-  state.selected = null;
-  state.answered = false;
+  const pending = getPendingAnswer();
 
-  closeAuth();
+  if (!pending) {
+    return;
+  }
 
-  await refreshUser();
+  if (pending.contentId !== state.content.id) {
+    clearPendingAnswer();
+    return;
+  }
+
+  state.selected = pending.optionId;
+
+  state.busy = true;
+
+  const startButton = $('startBtn');
+
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = 'در حال ثبت امتیاز...';
+  }
+
+  const {
+    data,
+    error
+  } = await db.rpc('submit_content_response', {
+    p_content_id: pending.contentId,
+    p_option_id: pending.optionId
+  });
+
+  state.busy = false;
+
+  if (error) {
+    console.error(error);
+
+    if (startButton) {
+      startButton.disabled = false;
+      startButton.textContent = 'ثبت امتیاز';
+    }
+
+    showResult(
+      `ثبت امتیاز انجام نشد: ${normalizeError(error)}`,
+      false
+    );
+
+    return;
+  }
+
+  clearPendingAnswer();
+
+  state.answered = true;
+
+  const points = Number(
+    data?.points_earned ?? data?.points ?? 0
+  );
+
+  const correct = data?.correct;
+
+  if (state.content.type === 'quiz') {
+    markQuizResult(correct);
+  }
+
+  showResult(
+    `امتیاز با موفقیت ثبت شد 🎉 +${points}`,
+    true
+  );
+
+  if (startButton) {
+    startButton.disabled = true;
+    startButton.textContent = 'امتیاز ثبت شد ✓';
+  }
+
   await loadStats();
-
-  showPage('home');
 }
 
-function showPage(id) {
-  document.querySelectorAll('.page').forEach((page) => {
-    page.classList.toggle(
-      'active',
-      page.id === id
-    );
-  });
+/* =========================
+   Stats
+========================= */
 
-  document.querySelectorAll('.nav').forEach((button) => {
-    button.classList.toggle(
-      'active',
-      button.dataset.page === id
-    );
-  });
-
-  if (id === 'competition') {
-    loadLeaderboard();
-  }
-
-  if (id === 'profile') {
-    loadStats();
-  }
-}
-
-async function loadLeaderboard() {
-  const box = $('leaderboard');
-
-  if (!box) return;
-
+async function loadStats() {
   if (!state.user) {
-    box.innerHTML =
-      '<div class="empty">برای دیدن رتبه‌بندی وارد شو.</div>';
+    setText('score', '۰');
+    setText('streak', '۰');
+    setText('rank', '—');
     return;
   }
 
-  box.innerHTML =
-    '<div class="empty">در حال دریافت رتبه‌بندی...</div>';
+  const scoreResult = await db.rpc('get_my_score');
 
-  const { data, error } = await db.rpc(
-    'get_weekly_leaderboard',
-    {
-      p_limit: 50
-    }
-  );
+  if (!scoreResult.error && scoreResult.data != null) {
+    const value =
+      typeof scoreResult.data === 'object'
+        ? (
+            scoreResult.data.total_points ??
+            scoreResult.data.points ??
+            scoreResult.data.score ??
+            0
+          )
+        : scoreResult.data;
 
-  if (error) {
-    console.warn('leaderboard:', error.message);
-
-    box.innerHTML =
-      '<div class="empty">رتبه‌بندی فعلاً در دسترس نیست.</div>';
-
-    return;
+    setText(
+      'score',
+      Number(value || 0).toLocaleString('fa-IR')
+    );
   }
 
-  if (!data?.length) {
-    box.innerHTML =
-      '<div class="empty">هنوز امتیازی ثبت نشده.</div>';
-    return;
+  const statsResult = await db.rpc('get_my_stats');
+
+  if (!statsResult.error && statsResult.data) {
+    const stats = statsResult.data;
+
+    setText(
+      'streak',
+      Number(
+        stats.current_streak ??
+        stats.streak ??
+        0
+      ).toLocaleString('fa-IR')
+    );
   }
 
-  box.innerHTML = data
-    .map((item) => {
-      const rank = Number(item.rank || 0);
-      const points = Number(item.points || 0);
+  const rankResult = await db.rpc('get_my_weekly_rank');
 
-      return `
-        <div class="item">
-          <div>
-            <b>#${esc(rank)} ${esc(item.name || 'کاربر')}</b>
-            <br>
-            <small>${esc(points)} امتیاز</small>
-          </div>
-          <span>${rank <= 3 ? '🏆' : '⭐'}</span>
-        </div>
-      `;
-    })
-    .join('');
-}
+  if (!rankResult.error && rankResult.data != null) {
+    const value =
+      typeof rankResult.data === 'object'
+        ? (
+            rankResult.data.rank ??
+            rankResult.data.weekly_rank ??
+            '—'
+          )
+        : rankResult.data;
 
-async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) {
-    return;
-  }
-
-  try {
-    await navigator.serviceWorker.register('./sw.js');
-    console.log('Service Worker registered.');
-  } catch (error) {
-    console.warn(
-      'Service Worker registration failed:',
-      error
+    setText(
+      'rank',
+      value === '—'
+        ? '—'
+        : Number(value).toLocaleString('fa-IR')
     );
   }
 }
 
-document.querySelectorAll('.nav').forEach((button) => {
-  button.addEventListener('click', () => {
-    showPage(button.dataset.page);
+/* =========================
+   Navigation
+========================= */
+
+function setupNavigation() {
+  document.querySelectorAll('[data-section]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const target = button.dataset.section;
+
+      document
+        .querySelectorAll('.section')
+        .forEach((section) => {
+          section.classList.add('hidden');
+        });
+
+      const targetSection = $(target);
+
+      if (targetSection) {
+        targetSection.classList.remove('hidden');
+      }
+
+      document
+        .querySelectorAll('[data-section]')
+        .forEach((item) => {
+          item.classList.toggle(
+            'active',
+            item.dataset.section === target
+          );
+        });
+    });
   });
-});
+}
 
-$('authBtn')?.addEventListener('click', () => {
-  if (state.user) {
-    showPage('profile');
-  } else {
-    openAuth();
+/* =========================
+   Auth UI Events
+========================= */
+
+function setupAuth() {
+  const loginButton = $('emailLogin');
+  const signupButton = $('emailSignup');
+
+  if (loginButton) {
+    loginButton.addEventListener('click', login);
   }
-});
 
-$('closeAuth')?.addEventListener(
-  'click',
-  closeAuth
-);
+  if (signupButton) {
+    signupButton.addEventListener('click', signup);
+  }
 
-$('googleLogin')?.addEventListener(
-  'click',
-  signInWithGoogle
-);
+  const closeButton = $('closeAuth');
 
-$('startBtn')?.addEventListener(
-  'click',
-  submitAnswer
-);
+  if (closeButton) {
+    closeButton.addEventListener('click', closeAuth);
+  }
 
-$('logoutBtn')?.addEventListener(
-  'click',
-  logout
-);
+  const modal = $('authModal');
 
-$('authModal')?.addEventListener(
-  'click',
-  (event) => {
-    if (event.target === $('authModal')) {
-      closeAuth();
+  if (modal) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeAuth();
+      }
+    });
+  }
+}
+
+/* =========================
+   Start Button
+========================= */
+
+function setupStartButton() {
+  const button = $('startBtn');
+
+  if (!button) return;
+
+  button.addEventListener('click', async () => {
+    /*
+     * Guest + not answered:
+     * preview result.
+     */
+    if (!state.user && !state.answered) {
+      await submitAnswer();
+      return;
     }
-  }
-);
 
-document.addEventListener(
-  'keydown',
-  (event) => {
-    if (event.key === 'Escape') {
-      closeAuth();
+    /*
+     * Guest + already previewed:
+     * now ask for account.
+     */
+    if (!state.user && state.answered) {
+      savePendingAnswer();
+      openAuth();
+      return;
     }
-  }
-);
 
-db.auth.onAuthStateChange(
-  (_event, session) => {
+    /*
+     * Logged in:
+     * submit normally.
+     */
+    await submitAnswer();
+  });
+}
+
+/* =========================
+   Auth State Listener
+========================= */
+
+function setupAuthListener() {
+  db.auth.onAuthStateChange(async (_event, session) => {
     state.user = session?.user || null;
 
-    setTimeout(async () => {
-      await refreshUser();
-      await loadStats();
-    }, 0);
-  }
-);
+    await loadStats();
 
-(async function init() {
-  await refreshUser();
-
-  if (state.user) {
-    const { error } =
-      await db.rpc('record_daily_login');
-
-    if (error) {
-      console.warn(
-        'daily login:',
-        error.message
-      );
+    if (state.user) {
+      await submitPendingAnswerIfNeeded();
     }
-  }
+  });
+}
 
-  await loadStats();
+/* =========================
+   Init
+========================= */
+
+async function init() {
+  setupNavigation();
+  setupAuth();
+  setupStartButton();
+  setupAuthListener();
+
+  await refreshUser();
   await loadContent();
-  await registerServiceWorker();
-})();
+  await loadStats();
+
+  /*
+   * If user had answered before login,
+   * automatically save it after session exists.
+   */
+  await submitPendingAnswerIfNeeded();
+}
+
+document.addEventListener('DOMContentLoaded', init);
