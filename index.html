@@ -9,58 +9,237 @@
 <link rel="stylesheet" href="./style.css">
 <title>هر روز یه چیز ✨</title>
 </head>
+
 <body>
+
 <div id="app">
+
 <header class="top">
-  <div><div class="brand">هر روز یه چیز ✨</div><div class="sub">امروز یه چیز تازه داری</div></div>
-  <button id="authBtn" class="ghost" type="button">ورود با Google</button>
+  <div>
+    <div class="brand">هر روز یه چیز ✨</div>
+    <div class="sub">امروز یه چیز تازه داری</div>
+  </div>
+
+  <button id="authBtn" class="ghost" type="button">
+    ورود با Google
+  </button>
 </header>
+
 <main>
+
 <section id="home" class="page active">
+
   <div class="hero">
+
     <span class="pill">اتفاق امروز</span>
-    <h1 id="contentTitle">در حال آماده‌سازی...</h1>
-    <p id="contentBody">یک لحظه صبر کن.</p>
+
+    <h1 id="contentTitle">
+      در حال آماده‌سازی...
+    </h1>
+
+    <p id="contentBody">
+      یک لحظه صبر کن.
+    </p>
+
     <div id="options" class="options"></div>
-    <button id="startBtn" class="primary" type="button" disabled>ثبت جواب</button>
-    <div id="result" class="result" aria-live="polite"></div>
+
+    <button
+      id="startBtn"
+      class="primary"
+      type="button"
+      disabled
+    >
+      در حال آماده‌سازی...
+    </button>
+
+    <div
+      id="result"
+      class="result"
+      aria-live="polite"
+    ></div>
+
   </div>
+
   <div class="stats">
-    <div><b id="score">0</b><span>امتیاز</span></div>
-    <div><b id="streak">0</b><span>روز پشت‌سرهم 🔥</span></div>
-    <div><b id="rank">—</b><span>رتبه هفتگی</span></div>
+
+    <div>
+      <b id="score">0</b>
+      <span>امتیاز</span>
+    </div>
+
+    <div>
+      <b id="streak">0</b>
+      <span>روز پشت‌سرهم 🔥</span>
+    </div>
+
+    <div>
+      <b id="rank">—</b>
+      <span>رتبه هفتگی</span>
+    </div>
+
   </div>
+
 </section>
+
 <section id="competition" class="page">
-  <div class="section-head"><h2>رقابت هفتگی 🏆</h2><span>Top 50</span></div>
-  <div id="leaderboard" class="list"><div class="empty">برای دیدن رتبه‌بندی وارد شو.</div></div>
+
+  <div class="section-head">
+    <h2>رقابت هفتگی 🏆</h2>
+    <span>Top 50</span>
+  </div>
+
+  <div id="leaderboard" class="list">
+    <div class="empty">
+      برای دیدن رتبه‌بندی وارد شو.
+    </div>
+  </div>
+
 </section>
+
 <section id="profile" class="page">
-  <div class="profile-card"><div id="avatar" class="avatar">🙂</div><h2 id="profileName">مهمان</h2><p id="profileEmail"></p><p>هر روز برگرد؛ امتیازت جمع می‌شود.</p></div>
+
+  <div class="profile-card">
+
+    <div id="avatar" class="avatar">
+      🙂
+    </div>
+
+    <h2 id="profileName">
+      مهمان
+    </h2>
+
+    <p id="profileEmail"></p>
+
+    <p>
+      هر روز برگرد؛ امتیازت جمع می‌شود.
+    </p>
+
+  </div>
+
   <div class="profile-grid">
-    <div><b id="pScore">0</b><span>امتیاز</span></div><div><b id="pStreak">0</b><span>استریک</span></div>
-    <div><b id="pLongest">0</b><span>بیشترین استریک</span></div><div><b id="pAnswers">0</b><span>فعالیت</span></div>
+
+    <div>
+      <b id="pScore">0</b>
+      <span>امتیاز</span>
+    </div>
+
+    <div>
+      <b id="pStreak">0</b>
+      <span>استریک</span>
+    </div>
+
+    <div>
+      <b id="pLongest">0</b>
+      <span>بیشترین استریک</span>
+    </div>
+
+    <div>
+      <b id="pAnswers">0</b>
+      <span>فعالیت</span>
+    </div>
+
   </div>
-  <button id="logoutBtn" class="danger" type="button">خروج</button>
+
+  <button
+    id="logoutBtn"
+    class="danger"
+    type="button"
+  >
+    خروج
+  </button>
+
 </section>
+
 </main>
+
 <nav class="bottom">
-  <button data-page="home" class="nav active" type="button">🏠<span>خانه</span></button>
-  <button data-page="competition" class="nav" type="button">🏆<span>رقابت</span></button>
-  <button data-page="profile" class="nav" type="button">👤<span>پروفایل</span></button>
+
+  <button
+    data-page="home"
+    class="nav active"
+    type="button"
+  >
+    🏠
+    <span>خانه</span>
+  </button>
+
+  <button
+    data-page="competition"
+    class="nav"
+    type="button"
+  >
+    🏆
+    <span>رقابت</span>
+  </button>
+
+  <button
+    data-page="profile"
+    class="nav"
+    type="button"
+  >
+    👤
+    <span>پروفایل</span>
+  </button>
+
 </nav>
+
 </div>
-<div id="authModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+
+<div
+  id="authModal"
+  class="modal hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="authTitle"
+>
+
   <div class="modal-box">
-    <button id="closeAuth" class="close" type="button" aria-label="بستن">×</button>
-    <h2 id="authTitle">ورود به «هر روز یه چیز»</h2>
-    <p>ثبت‌نام و ورود کاربران با حساب Google/Gmail انجام می‌شود.</p>
-    <button id="googleLogin" class="google" type="button">G&nbsp;&nbsp; ادامه با Google</button>
-    <div id="authMsg" class="msg" aria-live="polite"></div>
+
+    <button
+      id="closeAuth"
+      class="close"
+      type="button"
+      aria-label="بستن"
+    >
+      ×
+    </button>
+
+    <h2 id="authTitle">
+      ورود به «هر روز یه چیز»
+    </h2>
+
+    <p>
+      ثبت‌نام و ورود کاربران فقط با حساب Google/Gmail انجام می‌شود.
+    </p>
+
+    <button
+      id="googleLogin"
+      class="google"
+      type="button"
+    >
+      G&nbsp;&nbsp; ادامه با Google
+    </button>
+
+    <div
+      id="authMsg"
+      class="msg"
+      aria-live="polite"
+    ></div>
+
   </div>
+
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>window.APP_CONFIG={SUPABASE_URL:"https://urnnktoadrqrvhvvvtfd.supabase.co",SUPABASE_KEY:"sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"};</script>
+
+<script>
+window.APP_CONFIG = {
+  SUPABASE_URL: "https://urnnktoadrqrvhvvvtfd.supabase.co",
+  SUPABASE_KEY: "sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"
+};
+</script>
+
 <script src="./app.js"></script>
+
 </body>
 </html>
