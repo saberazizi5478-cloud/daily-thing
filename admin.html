@@ -1,7 +1,215 @@
+<!-- فایل: admin.html -->
+
 <!doctype html>
 <html lang="fa" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="./style.css"><title>مدیریت | هر روز یه چیز</title></head>
-<body><main class="admin"><header class="top"><div><div class="brand">پنل مدیریت 🛠️</div><div class="sub">هر روز یه چیز</div></div><a class="ghost link" href="./index.html">بازگشت به اپ</a></header>
-<section id="gate" class="hero"><h2>در حال بررسی دسترسی...</h2></section>
-<section id="panel" class="hidden"><div class="hero"><span class="pill">محتوای روزانه</span><h2>ساخت اتفاق امروز</h2><form id="contentForm"><select id="type"><option value="quiz">🧠 معما / Quiz</option><option value="poll">😂 رأی‌گیری / Poll</option><option value="challenge">🎯 چالش / Challenge</option></select><input id="title" required placeholder="عنوان"><textarea id="body" placeholder="متن یا توضیح"></textarea><input id="points" type="number" min="1" max="1000" value="10" placeholder="امتیاز"><input id="publishAt" type="datetime-local"><input id="expiresAt" type="datetime-local"><div id="optionsForm"><input class="opt" placeholder="گزینه ۱"><input class="opt" placeholder="گزینه ۲"><input class="opt" placeholder="گزینه ۳"><input class="opt" placeholder="گزینه ۴"></div><label class="check"><input id="correct" type="number" min="1" max="4" value="1"> شماره گزینه درست (برای Quiz)</label><button class="primary" type="submit">انتشار</button><div id="adminMsg" class="msg"></div></form></div><div class="hero"><h2>محتواهای اخیر</h2><div id="contentList" class="list"></div></div></section></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>window.APP_CONFIG={SUPABASE_URL:"https://urnnktoadrqrvhvvvtfd.supabase.co",SUPABASE_KEY:"sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"};</script><script src="./admin.js"></script></body></html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0d12">
+<meta name="description" content="پنل مدیریت هر روز یه چیز">
+<link rel="stylesheet" href="./style.css">
+<title>مدیریت | هر روز یه چیز</title>
+</head>
+
+<body>
+
+<main class="admin">
+
+<header class="top">
+
+  <div>
+    <div class="brand">پنل مدیریت 🛠️</div>
+    <div class="sub">هر روز یه چیز</div>
+  </div>
+
+  <a
+    class="ghost link"
+    href="./index.html"
+  >
+    بازگشت به اپ
+  </a>
+
+</header>
+
+<section id="gate" class="hero">
+
+  <h2>در حال بررسی دسترسی...</h2>
+
+  <p>
+    لطفاً چند لحظه صبر کن.
+  </p>
+
+</section>
+
+<section
+  id="panel"
+  class="hidden"
+>
+
+  <div class="hero">
+
+    <span class="pill">
+      محتوای روزانه
+    </span>
+
+    <h2>
+      ساخت اتفاق امروز
+    </h2>
+
+    <form id="contentForm">
+
+      <select id="type" required>
+        <option value="quiz">
+          🧠 معما / Quiz
+        </option>
+
+        <option value="poll">
+          😂 رأی‌گیری / Poll
+        </option>
+
+        <option value="challenge">
+          🎯 چالش / Challenge
+        </option>
+      </select>
+
+      <input
+        id="title"
+        type="text"
+        required
+        maxlength="150"
+        placeholder="عنوان"
+      >
+
+      <textarea
+        id="body"
+        maxlength="2000"
+        placeholder="متن یا توضیح"
+      ></textarea>
+
+      <input
+        id="points"
+        type="number"
+        min="1"
+        max="1000"
+        value="10"
+        required
+        placeholder="امتیاز"
+      >
+
+      <input
+        id="publishAt"
+        type="datetime-local"
+      >
+
+      <input
+        id="expiresAt"
+        type="datetime-local"
+      >
+
+      <div id="optionsForm">
+
+        <input
+          class="opt"
+          type="text"
+          maxlength="500"
+          placeholder="گزینه ۱"
+        >
+
+        <input
+          class="opt"
+          type="text"
+          maxlength="500"
+          placeholder="گزینه ۲"
+        >
+
+        <input
+          class="opt"
+          type="text"
+          maxlength="500"
+          placeholder="گزینه ۳"
+        >
+
+        <input
+          class="opt"
+          type="text"
+          maxlength="500"
+          placeholder="گزینه ۴"
+        >
+
+      </div>
+
+      <label class="check">
+
+        <span>
+          شماره گزینه درست برای Quiz:
+        </span>
+
+        <input
+          id="correct"
+          type="number"
+          min="1"
+          max="4"
+          value="1"
+        >
+
+      </label>
+
+      <button
+        class="primary"
+        type="submit"
+      >
+        انتشار
+      </button>
+
+      <div
+        id="adminMsg"
+        class="msg"
+        aria-live="polite"
+      ></div>
+
+    </form>
+
+  </div>
+
+  <div class="hero">
+
+    <div class="section-head">
+
+      <h2>
+        محتواهای اخیر
+      </h2>
+
+      <span>
+        آخرین ۳۰ مورد
+      </span>
+
+    </div>
+
+    <div
+      id="contentList"
+      class="list"
+    >
+      <div class="empty">
+        در حال دریافت...
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+window.APP_CONFIG = {
+  SUPABASE_URL: "https://urnnktoadrqrvhvvvtfd.supabase.co",
+  SUPABASE_KEY: "sb_publishable_MODsSgH6XNwyK2maKNeG2Q_tSIvRNql"
+};
+</script>
+
+<script src="./admin.js"></script>
+
+</body>
+</html>
