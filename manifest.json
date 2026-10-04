@@ -1,11 +1,19 @@
 {
   "name": "هر روز یه چیز",
   "short_name": "هر روز یه چیز",
+  "description": "هر روز یه اتفاق، چالش یا سؤال تازه",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0d0d12",
   "theme_color": "#0d0d12",
+  "orientation": "portrait",
   "lang": "fa",
   "dir": "rtl",
+  "categories": [
+    "entertainment",
+    "games",
+    "lifestyle"
+  ],
   "icons": []
 }
