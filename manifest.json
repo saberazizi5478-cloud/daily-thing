@@ -1,0 +1,11 @@
+{
+  "name": "هر روز یه چیز",
+  "short_name": "هر روز یه چیز",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d0d12",
+  "theme_color": "#0d0d12",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": []
+}
